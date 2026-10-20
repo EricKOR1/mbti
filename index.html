@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>64 성격 키</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: 단일 컬럼 카드 흐름 — 소개 → 문항(한 번에 하나) → 결과 리포트. 16유형 기질 색이 결과를 물들인다. */
+:root{
+  --bg:#F4F5F9; --surface:#FFFFFF; --fg:#1A1D2B; --muted:#5D6275; --line:#DDE0EA;
+  --accent:#4338CA; --accent-soft:#E7E6FB; --on-accent:#FFFFFF;
+  --nt:#7B4FC9; --nf:#2E9A6B; --sj:#2F72C4; --sp:#C98A12;
+  --agree:#2E9A6B; --disagree:#7B4FC9;
+  --font-display:"Do Hyeon","IBM Plex Sans KR",system-ui,sans-serif;
+  --font-body:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12131B; --surface:#1C1E2A; --fg:#ECEDF4; --muted:#A3A7BA; --line:#2E3142;
+  --accent:#8F88F5; --accent-soft:#2A2850; --on-accent:#12131B;
+  --nt:#A783EE; --nf:#4FC992; --sj:#62A1EC; --sp:#E7B347;
+  --agree:#4FC992; --disagree:#A783EE; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12131B; --surface:#1C1E2A; --fg:#ECEDF4; --muted:#A3A7BA; --line:#2E3142;
+  --accent:#8F88F5; --accent-soft:#2A2850; --on-accent:#12131B;
+  --nt:#A783EE; --nf:#4FC992; --sj:#62A1EC; --sp:#E7B347;
+  --agree:#4FC992; --disagree:#A783EE; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.65;word-break:keep-all;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 64px}
+.wrap{max-width:680px;margin:0 auto;display:grid;gap:20px}
+h1,h2,h3{font-family:var(--font-display);font-weight:400;line-height:1.2;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.2rem,7vw,3.2rem)}
+h2{font-size:1.7rem}
+h3{font-size:1.25rem}
+p{margin:0}
+.muted{color:var(--muted)}
+.eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;display:grid;gap:14px;min-width:0}
+.mono{font-family:var(--font-mono)}
+button{font:inherit;cursor:pointer}
+.btn{border:0;border-radius:10px;padding:14px 22px;white-space:nowrap;font-weight:600;background:var(--accent);color:var(--on-accent)}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.btn:focus-visible,.dot:focus-visible,.link:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.link{background:none;border:0;color:var(--muted);text-decoration:underline;padding:0}
+
+/* 소개: 코드 해부도 */
+.anatomy{display:flex;flex-wrap:wrap;gap:6px;font-family:var(--font-mono);font-size:clamp(1.6rem,6vw,2.3rem);font-weight:600}
+.anatomy span{padding:4px 10px;border-radius:8px;background:var(--accent-soft)}
+.anatomy .sep{background:none;padding:4px 0;color:var(--muted)}
+.axes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px;font-size:.93rem}
+.axes div{display:grid;gap:2px}
+.axes b{font-family:var(--font-mono)}
+@media (max-width:520px){.axes{grid-template-columns:1fr}}
+
+/* 문항 */
+.progress{height:6px;background:var(--line);border-radius:6px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s}
+.qtext{font-size:clamp(1.25rem,4.5vw,1.55rem);font-weight:600;line-height:1.45;min-height:3em;text-wrap:balance}
+.scale{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px}
+.scale .lab{font-size:.85rem;font-weight:600}
+.scale .lab.l{color:var(--agree)} .scale .lab.r{color:var(--disagree)}
+.dots{display:flex;justify-content:space-between;align-items:center;gap:4px}
+.dot{border-radius:50%;background:transparent;border:2px solid;padding:0;flex:0 0 auto;transition:background .15s,transform .1s}
+.dot:hover{transform:scale(1.08)}
+.dot.s3{width:48px;height:48px}.dot.s2{width:40px;height:40px}.dot.s1{width:32px;height:32px}.dot.s0{width:26px;height:26px}
+.dot.ag{border-color:var(--agree)} .dot.dg{border-color:var(--disagree)} .dot.nu{border-color:var(--muted)}
+.dot.ag.on{background:var(--agree)} .dot.dg.on{background:var(--disagree)} .dot.nu.on{background:var(--muted)}
+@media (max-width:440px){.scale{grid-template-columns:1fr 1fr}.scale .dots{grid-column:1/-1;grid-row:1}.scale .lab.r{text-align:right}
+  .dot.s3{width:40px;height:40px}.dot.s2{width:34px;height:34px}.dot.s1{width:28px;height:28px}.dot.s0{width:22px;height:22px}}
+.qnav{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:.9rem}
+.counter{font-family:var(--font-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* 결과 */
+.hero{border-top:6px solid var(--tc)}
+.code{font-family:var(--font-mono);font-weight:600;font-size:clamp(2rem,9vw,3.2rem);letter-spacing:.02em;color:var(--tc);line-height:1.1}
+.chip{display:inline-block;font-size:.8rem;font-weight:600;padding:3px 10px;border-radius:999px;border:1px solid var(--tc);color:var(--tc)}
+.bars{display:grid;gap:14px}
+.bar{display:grid;gap:4px}
+.bar .ends{display:flex;justify-content:space-between;font-size:.88rem;gap:8px}
+.bar .ends b{font-variant-numeric:tabular-nums}
+.track{position:relative;height:10px;background:var(--line);border-radius:6px}
+.track i{position:absolute;top:0;bottom:0;border-radius:6px;background:var(--tc)}
+.track::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;background:var(--muted);opacity:.5}
+.flag{font-size:.78rem;color:var(--sp);font-weight:600}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:520px){.cols{grid-template-columns:1fr}}
+ul{margin:0;padding-left:1.1em;display:grid;gap:4px}
+.matches{display:flex;flex-wrap:wrap;gap:8px}
+.grid16{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.grid16 div{border-radius:8px;padding:8px 6px;text-align:center;font-size:.78rem;border:1px solid var(--line);line-height:1.3}
+.grid16 div b{display:block;font-family:var(--font-mono);font-size:.95rem}
+.grid16 div.me{background:var(--tc);color:var(--on-accent);border-color:var(--tc)}
+.note{font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <!-- 소개 -->
+  <section id="intro" class="wrap">
+    <div class="card">
+      <span class="eyebrow">64유형 성격 검사 · 60문항 · 약 8분</span>
+      <h1>나를 여는 여섯 자리 코드</h1>
+      <p class="muted">MBTI 4가지 지표에 <b>정체성(A/T)</b>과 <b>관계 방식(C/D)</b> 2가지 지표를 더해 16 × 4 = 64가지 유형으로 나눕니다. 결과는 무료로 전부 공개되고, 지표마다 몇 퍼센트 쪽으로 기울었는지도 함께 보여 드려요.</p>
+      <div class="anatomy" aria-label="예시 코드 ENFP-T-C">
+        <span>E</span><span>N</span><span>F</span><span>P</span><span class="sep">-</span><span>T</span><span class="sep">-</span><span>C</span>
+      </div>
+      <div class="axes">
+        <div><b>E / I</b><span class="muted">에너지 방향: 외향 · 내향</span></div>
+        <div><b>S / N</b><span class="muted">인식 방식: 감각 · 직관</span></div>
+        <div><b>T / F</b><span class="muted">판단 기준: 사고 · 감정</span></div>
+        <div><b>J / P</b><span class="muted">생활 양식: 계획 · 유연</span></div>
+        <div><b>A / T</b><span class="muted">정체성: 자기확신 · 신중</span></div>
+        <div><b>C / D</b><span class="muted">관계 방식: 협력 · 주도</span></div>
+      </div>
+      <div class="row">
+        <button class="btn" id="startBtn" type="button">검사 시작하기</button>
+        <button class="btn ghost" id="resumeBtn" type="button" hidden>이어서 하기</button>
+      </div>
+      <p class="note">정답은 없습니다. 되고 싶은 모습보다 평소의 나를 떠올리며 답해 주세요. 확신이 없으면 가운데를 고르세요.</p>
+    </div>
+  </section>
+
+  <!-- 문항 -->
+  <section id="quiz" class="wrap" hidden>
+    <div class="card">
+      <div class="qnav"><span class="eyebrow" id="qAxis"></span><span class="counter" id="qCount"></span></div>
+      <div class="progress" aria-hidden="true"><i id="qBar"></i></div>
+      <p class="qtext" id="qText" aria-live="polite"></p>
+      <div class="scale">
+        <span class="lab l">그렇다</span>
+        <div class="dots" id="dots" role="radiogroup" aria-label="응답"></div>
+        <span class="lab r">아니다</span>
+      </div>
+      <div class="qnav">
+        <button class="btn ghost" id="prevBtn" type="button">이전</button>
+        <span class="note">키보드 1~7로도 답할 수 있어요</span>
+        <button class="btn" id="nextBtn" type="button" disabled>다음</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 결과 -->
+  <section id="result" class="wrap" hidden></section>
+</div>
+
+<script>
+// 문항: a = 지표, k = +1이면 "그렇다"가 앞 글자(E,S,T,J,A,C) 쪽
+const AXES = {
+  EI:{l:['E','I'],n:['외향','내향'],t:'에너지 방향'},
+  SN:{l:['S','N'],n:['감각','직관'],t:'인식 방식'},
+  TF:{l:['T','F'],n:['사고','감정'],t:'판단 기준'},
+  JP:{l:['J','P'],n:['계획','유연'],t:'생활 양식'},
+  AT:{l:['A','T'],n:['자기확신','신중'],t:'정체성'},
+  CD:{l:['C','D'],n:['협력','주도'],t:'관계 방식'}
+};
+const BANK = {
+  EI:[['처음 보는 사람과도 금방 대화를 시작한다.',1],['혼자 보내는 주말이 가장 잘 충전된다.',-1],['모임에서 대화를 이끄는 편이다.',1],['사람들과 오래 함께 있으면 기운이 빠진다.',-1],['말하면서 생각을 정리하는 편이다.',1],['통화보다 문자가 편하다.',-1],['새로운 모임에 초대받으면 설렌다.',1],['넓은 인맥보다 깊이 아는 소수의 친구가 좋다.',-1],['사람들의 주목을 받는 자리가 크게 부담스럽지 않다.',1],['말하기 전에 속으로 충분히 생각해 본다.',-1]],
+  SN:[['구체적인 사실과 데이터를 더 믿는다.',1],['"만약에~" 하는 상상을 자주 한다.',-1],['설명서를 순서대로 따라 하는 게 편하다.',1],['미래의 가능성을 이야기하는 것이 즐겁다.',-1],['새로운 방법보다 검증된 방법이 낫다고 생각한다.',1],['사물이나 사건의 숨은 의미에 관심이 간다.',-1],['세부 사항을 잘 기억하는 편이다.',1],['아이디어가 갑자기 떠오르는 일이 많다.',-1],['당장 현실에서 쓸모 있는 것에 끌린다.',1],['추상적인 이론이나 철학 이야기가 재미있다.',-1]],
+  TF:[['결정할 때 감정보다 논리가 먼저다.',1],['다른 사람의 기분이 쉽게 전해진다.',-1],['틀린 것은 친한 사이에도 짚어야 한다고 생각한다.',1],['갈등이 생기면 분위기부터 살핀다.',-1],['배려보다 공정함이 더 중요하다.',1],['힘든 친구에게 해결책보다 공감을 먼저 건넨다.',-1],['비판을 받아도 개인적으로 받아들이지 않는다.',1],['슬픈 이야기에 쉽게 눈물이 난다.',-1],['비효율적인 방식은 참기 어렵다.',1],['내 결정이 다른 사람에게 미칠 영향을 오래 고민한다.',-1]],
+  JP:[['여행 전에 일정을 꼼꼼히 짠다.',1],['마감 직전에 집중이 가장 잘 된다.',-1],['할 일 목록을 만들고 하나씩 지우는 게 즐겁다.',1],['계획이 바뀌어도 크게 개의치 않는다.',-1],['주변이 정리되어 있어야 마음이 편하다.',1],['선택지를 여러 개 열어 두는 게 좋다.',-1],['결정을 빨리 내리고 마무리 짓는 편이다.',1],['즉흥적인 약속이 오히려 재밌다.',-1],['일을 미리 끝내 두지 않으면 불안하다.',1],['정해진 규칙보다 상황에 맞춰 움직인다.',-1]],
+  AT:[['스트레스 상황에서도 비교적 침착하다.',1],['실수한 일을 오래 곱씹는다.',-1],['내 능력에 대체로 자신이 있다.',1],['남들이 나를 어떻게 볼지 자주 신경 쓴다.',-1],['결과가 나빠도 금방 털고 일어난다.',1],['사소한 일에도 걱정이 많다.',-1],['내린 결정을 크게 후회하지 않는다.',1],['기분의 오르내림이 큰 편이다.',-1],['압박감 속에서도 실력을 발휘할 수 있다.',1],['더 잘해야 한다는 압박을 자주 느낀다.',-1]],
+  CD:[['혼자보다 팀으로 일할 때 성과가 좋다.',1],['내 방식대로 일할 수 있을 때 가장 만족스럽다.',-1],['중요한 결정은 다른 사람과 상의한다.',1],['남의 도움 없이 해낼 때 뿌듯하다.',-1],['모두의 목표를 위해 내 의견을 양보할 수 있다.',1],['누가 정해 주기보다 스스로 정하는 게 좋다.',-1],['다른 사람의 피드백이 큰 동기부여가 된다.',1],['남들과 다른 길을 가는 것이 두렵지 않다.',-1],['함께 이룬 성취가 혼자 이룬 것보다 더 기쁘다.',1],['회의보다 혼자 고민할 때 좋은 답이 나온다.',-1]]
+};
+// 지표를 번갈아 섞어 한 지표만 연달아 나오지 않게 한다
+const QUESTIONS = [];
+for (let i = 0; i < 10; i++) for (const a of Object.keys(BANK)) QUESTIONS.push({a, t:BANK[a][i][0], k:BANK[a][i][1]});
+
+const GROUPS = {NT:{n:'분석가',c:'--nt'},NF:{n:'외교관',c:'--nf'},SJ:{n:'관리자',c:'--sj'},SP:{n:'탐험가',c:'--sp'}};
+const TYPES = {
+  INTJ:{n:'전략가',d:'큰 그림을 설계하고 끝까지 실행하는 독립적인 계획가입니다.',s:['장기적인 안목','높은 기준과 자기주도성','복잡한 문제를 구조화하는 능력'],w:['감정 표현이 서툴다','비효율에 대한 조급함','다른 의견을 늦게 받아들임'],j:['전략기획','데이터 과학자','연구원','건축가'],m:['ENFP','ENTP']},
+  INTP:{n:'사색가',d:'원리를 파고들어 세상을 이해하려는 호기심 많은 분석가입니다.',s:['독창적인 사고','객관적인 분석','지적 유연성'],w:['실행이 늦어짐','일상 업무에 소홀','거리감 있어 보임'],j:['소프트웨어 개발자','연구자','시스템 분석가','이론가'],m:['ENTJ','ESTJ']},
+  ENTJ:{n:'지휘관',d:'목표가 정해지면 사람과 자원을 모아 밀어붙이는 타고난 리더입니다.',s:['결단력','조직 능력','자신감 있는 소통'],w:['독단적으로 보임','감정을 놓침','참을성 부족'],j:['경영자','컨설턴트','창업가','변호사'],m:['INTP','INFP']},
+  ENTP:{n:'발명가',d:'새로운 아이디어로 기존의 틀을 흔드는 재치 있는 도전자입니다.',s:['빠른 발상','뛰어난 말솜씨','높은 적응력'],w:['마무리 부족','논쟁으로 갈등 유발','반복 업무에 쉽게 싫증'],j:['기획자','마케터','창업가','기자'],m:['INFJ','INTJ']},
+  INFJ:{n:'통찰가',d:'사람의 속마음을 읽고 더 나은 방향으로 조용히 이끄는 이상주의자입니다.',s:['깊은 공감','통찰력','신념 있는 실행'],w:['완벽주의','쉽게 지침','마음을 쉽게 열지 않음'],j:['상담사','작가','교육자','인사 담당자'],m:['ENTP','ENFP']},
+  INFP:{n:'중재자',d:'자기만의 가치와 이야기를 품은 따뜻한 이상주의자입니다.',s:['진정성','창의적인 표현','포용력'],w:['비판에 민감','현실적인 일을 미룸','결정을 어려워함'],j:['작가','디자이너','상담사','사회복지사'],m:['ENFJ','ENTJ']},
+  ENFJ:{n:'멘토',d:'사람의 잠재력을 끌어내 함께 성장하게 만드는 리더입니다.',s:['동기부여','소통 능력','책임감'],w:['남을 지나치게 챙김','거절을 어려워함','갈등 회피'],j:['교사','코치','HR 매니저','홍보 담당자'],m:['INFP','ISFP']},
+  ENFP:{n:'활동가',d:'열정과 호기심으로 사람과 가능성을 연결하는 에너자이저입니다.',s:['열정','친화력','창의성'],w:['집중이 쉽게 흩어짐','마무리가 약함','감정 기복'],j:['크리에이터','마케터','상담사','기획자'],m:['INTJ','INFJ']},
+  ISTJ:{n:'원칙주의자',d:'약속과 규칙을 지키며 맡은 일을 확실히 해내는 책임자입니다.',s:['믿음직함','꼼꼼함','인내심'],w:['변화에 보수적','융통성 부족','감정 표현이 적음'],j:['회계사','공무원','품질관리','법무 담당자'],m:['ESFP','ESTP']},
+  ISFJ:{n:'수호자',d:'주변 사람을 세심하게 챙기는 따뜻한 지지자입니다.',s:['배려심','성실함','뛰어난 기억력'],w:['자기희생','변화에 대한 부담','거절을 어려워함'],j:['간호사','교사','행정직','사회복지사'],m:['ESFP','ESTP']},
+  ESTJ:{n:'감독관',d:'질서와 효율로 조직을 굴러가게 만드는 실무형 리더입니다.',s:['실행력','조직화 능력','솔직함'],w:['융통성 부족','강압적으로 보임','감정을 간과함'],j:['관리자','프로젝트 매니저','경찰·군인','영업 관리자'],m:['ISTP','INTP']},
+  ESFJ:{n:'친선대사',d:'모두가 편안하도록 분위기와 관계를 챙기는 사교가입니다.',s:['친화력','책임감','협동심'],w:['인정 욕구가 큼','비판에 민감','갈등 회피'],j:['서비스 기획자','간호사','교육자','이벤트 플래너'],m:['ISFP','ISTP']},
+  ISTP:{n:'장인',d:'손과 머리로 문제를 직접 풀어내는 냉철한 해결사입니다.',s:['침착함','실용적인 문제 해결','적응력'],w:['감정 표현이 서툼','쉽게 지루해함','장기 약속을 부담스러워함'],j:['엔지니어','정비사','파일럿','보안 전문가'],m:['ESTJ','ESFJ']},
+  ISFP:{n:'예술가',d:'감각과 취향으로 지금 이 순간을 아름답게 만드는 사람입니다.',s:['감수성','유연함','겸손함'],w:['계획이 부족함','갈등 회피','자기 비판'],j:['디자이너','사진가','요리사','수의사'],m:['ENFJ','ESFJ']},
+  ESTP:{n:'승부사',d:'행동으로 먼저 부딪히며 기회를 잡는 현실주의자입니다.',s:['순발력','대담함','관찰력'],w:['성급함','규칙을 가볍게 여김','장기 계획이 약함'],j:['영업','창업가','스포츠 분야','응급구조'],m:['ISFJ','ISTJ']},
+  ESFP:{n:'분위기 메이커',d:'어디서든 즐거움을 만드는 자유로운 영혼입니다.',s:['유쾌함','현실 감각','사교성'],w:['즉흥적인 지출','깊은 계획을 피함','비판에 약함'],j:['엔터테이너','여행 가이드','영업','이벤트 기획자'],m:['ISTJ','ISFJ']}
+};
+const ID_TXT = {
+  A:'자기확신형(A): 자신에 대한 믿음이 안정적이라 압박 속에서도 잘 흔들리지 않습니다. 다만 위험 신호를 가볍게 넘기지 않도록 주의하세요.',
+  T:'신중형(T): 결과에 예민하고 더 나아지려는 동기가 강합니다. 걱정이 커질 때는 스스로에게 조금 더 너그러워져도 괜찮아요.'
+};
+const REL_TXT = {
+  C:'협력형(C): 사람들과 함께할 때 힘이 납니다. 피드백과 팀워크를 성장의 원동력으로 씁니다.',
+  D:'주도형(D): 스스로 방향을 정할 때 가장 잘합니다. 독립적이지만 모든 걸 혼자 짊어지지 않도록 주의하세요.'
+};
+const VARIANTS = {
+  AC:{adj:'든든한',tip:'흔들림 없는 자신감으로 팀의 중심을 잡아 주는 사람입니다. 내 확신이 다른 사람의 목소리를 덮지 않는지 가끔 확인해 보세요.'},
+  AD:{adj:'거침없는',tip:'스스로 길을 내고 망설임 없이 나아가는 사람입니다. 혼자 결정하기 전에 믿을 만한 한 사람에게 의견을 물어보면 더 단단해집니다.'},
+  TC:{adj:'섬세한',tip:'주변을 세심하게 살피며 함께 더 나은 결과를 만들려는 사람입니다. 남의 평가보다 내 기준을 먼저 세우는 연습이 도움이 됩니다.'},
+  TD:{adj:'치열한',tip:'높은 기준을 세우고 혼자서 끝까지 파고드는 사람입니다. 완벽하지 않아도 공유하고 도움을 받는 것이 오히려 속도를 높여 줍니다.'}
+};
+
+const ORDER = ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP','ISTJ','ISFJ','ESTJ','ESFJ','ISTP','ISFP','ESTP','ESFP'];
+const groupOf = t => t[1]==='N' ? (t[2]==='T'?'NT':'NF') : (t[3]==='J'?'SJ':'SP');
+const STORE = 'mbti64.answers';
+const $ = id => document.getElementById(id);
+
+let answers = new Array(QUESTIONS.length).fill(null); // -3..+3 (그렇다 = +3)
+let cur = 0;
+
+function save(){ try{ localStorage.setItem(STORE, JSON.stringify(answers)); }catch(e){} }
+function load(){ try{ const a = JSON.parse(localStorage.getItem(STORE)); if (Array.isArray(a) && a.length === QUESTIONS.length) return a; }catch(e){} return null; }
+function clearSaved(){ try{ localStorage.removeItem(STORE); }catch(e){} }
+
+function show(id){ for (const s of ['intro','quiz','result']) $(s).hidden = s !== id; window.scrollTo(0,0); }
+
+// 7점 척도: 왼쪽(그렇다 +3) → 오른쪽(아니다 -3)
+const VALUES = [3,2,1,0,-1,-2,-3];
+function buildDots(){
+  const box = $('dots'); box.innerHTML = '';
+  VALUES.forEach((v,i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.id = 'dot'+i;
+    b.className = 'dot s'+Math.abs(v)+' '+(v>0?'ag':v<0?'dg':'nu');
+    b.setAttribute('role','radio');
+    b.setAttribute('aria-label', ['매우 그렇다','그렇다','약간 그렇다','보통이다','약간 아니다','아니다','전혀 아니다'][i]);
+    b.addEventListener('click', () => answer(v));
+    box.appendChild(b);
+  });
+}
+function renderQ(){
+  const q = QUESTIONS[cur];
+  $('qText').textContent = q.t;
+  $('qAxis').textContent = AXES[q.a].t;
+  $('qCount').textContent = (cur+1)+' / '+QUESTIONS.length;
+  $('qBar').style.width = (answers.filter(x => x !== null).length / QUESTIONS.length * 100)+'%';
+  VALUES.forEach((v,i) => { const d = $('dot'+i); const on = answers[cur] === v; d.classList.toggle('on', on); d.setAttribute('aria-checked', on); });
+  $('prevBtn').disabled = cur === 0;
+  $('nextBtn').disabled = answers[cur] === null;
+  $('nextBtn').textContent = cur === QUESTIONS.length-1 ? '결과 보기' : '다음';
+}
+let advanceTimer;
+function answer(v){
+  answers[cur] = v; save(); renderQ();
+  clearTimeout(advanceTimer);
+  advanceTimer = setTimeout(next, 220); // 답하면 자동으로 다음 문항
+}
+function next(){
+  if (answers[cur] === null) return;
+  if (cur < QUESTIONS.length-1){ cur++; renderQ(); return; }
+  const first = answers.indexOf(null);
+  if (first !== -1){ cur = first; renderQ(); return; }
+  finish();
+}
+function prev(){ if (cur > 0){ clearTimeout(advanceTimer); cur--; renderQ(); } }
+
+// 지표별 앞 글자 비율(%) 계산. 각 지표 10문항 × ±3점 → -30..+30
+function score(ans){
+  const sum = {}; for (const a in AXES) sum[a] = 0;
+  QUESTIONS.forEach((q,i) => { sum[q.a] += (ans[i] || 0) * q.k; });
+  const pct = {}; for (const a in AXES) pct[a] = Math.round(50 + sum[a]/60*100);
+  return pct;
+}
+function codeOf(pct){
+  const L = a => pct[a] >= 50 ? AXES[a].l[0] : AXES[a].l[1];
+  return L('EI')+L('SN')+L('TF')+L('JP')+'-'+L('AT')+'-'+L('CD');
+}
+function finish(){
+  const pct = score(answers);
+  const hash = 'r-'+codeOf(pct)+'-'+Object.keys(AXES).map(a => pct[a]).join('.');
+  try{ history.replaceState(null,'','#'+hash); }catch(e){}
+  clearSaved();
+  renderResult(pct);
+}
+
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function renderResult(pct){
+  const code = codeOf(pct);
+  const base = code.slice(0,4), id = code[5], rel = code[7];
+  const t = TYPES[base], g = GROUPS[groupOf(base)], v = VARIANTS[id+rel];
+  const el = $('result');
+  el.style.setProperty('--tc', 'var('+g.c+')');
+  const bars = Object.keys(AXES).map(a => {
+    const p = pct[a], ax = AXES[a], left = p >= 50;
+    const strength = Math.abs(p-50)*2;
+    const w = Math.max(Math.abs(p-50), 1);
+    return `<div class="bar">
+      <div class="ends"><span>${left?'<b>':''}${ax.n[0]} ${ax.l[0]} ${p}%${left?'</b>':''}</span>
+      <span class="muted">${ax.t}${strength < 20 ? ' · <span class="flag">경계선</span>' : ''}</span>
+      <span>${!left?'<b>':''}${100-p}% ${ax.l[1]} ${ax.n[1]}${!left?'</b>':''}</span></div>
+      <div class="track"><i style="${left?'right:50%':'left:50%'};width:${w}%"></i></div></div>`;
+  }).join('');
+  const borderline = Object.keys(AXES).filter(a => Math.abs(pct[a]-50) < 10).map(a => AXES[a].t);
+  const grid = ORDER.map(k => `<div class="${k===base?'me':''}"><b>${k}</b>${TYPES[k].n}</div>`).join('');
+  el.innerHTML = `
+  <div class="card hero">
+    <span class="eyebrow">당신의 성격 코드</span>
+    <div class="code">${code}</div>
+    <h2>${v.adj} ${t.n}</h2>
+    <div class="row"><span class="chip">${g.n} 기질</span><span class="chip">${id==='A'?'자기확신형':'신중형'}</span><span class="chip">${rel==='C'?'협력형':'주도형'}</span></div>
+    <p>${t.d} ${v.tip}</p>
+  </div>
+  <div class="card">
+    <h3>지표별 성향</h3>
+    <div class="bars">${bars}</div>
+    ${borderline.length ? `<p class="note">경계선 지표(${borderline.join(', ')})는 양쪽 성향이 비슷합니다. 다시 검사하면 글자가 바뀔 수 있으니 두 유형 설명을 모두 참고하세요.</p>` : ''}
+  </div>
+  <div class="card">
+    <div class="cols">
+      <div><h3>강점</h3><ul>${t.s.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+      <div><h3>주의할 점</h3><ul>${t.w.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>A/T · C/D 보조 지표</h3>
+    <p>${ID_TXT[id]}</p>
+    <p>${REL_TXT[rel]}</p>
+  </div>
+  <div class="card">
+    <div class="cols">
+      <div><h3>어울리는 직업</h3><ul>${t.j.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+      <div><h3>잘 맞는 유형</h3><div class="matches">${t.m.map(m=>`<span class="chip">${m} ${TYPES[m].n}</span>`).join('')}</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>16가지 기본 유형</h3>
+    <div class="grid16">${grid}</div>
+    <p class="note">각 기본 유형은 A/T와 C/D 조합(든든한·거침없는·섬세한·치열한)에 따라 4가지로 나뉘어 모두 64가지가 됩니다.</p>
+  </div>
+  <div class="card">
+    <div class="row">
+      <button class="btn" id="copyBtn" type="button">결과 복사하기</button>
+      <button class="btn ghost" id="retryBtn" type="button">다시 검사하기</button>
+    </div>
+    <textarea id="copyText" readonly hidden rows="3" style="width:100%;font:inherit"></textarea>
+    <p class="note">이 검사는 자기 이해를 돕는 참고용이며, 전문 심리 검사나 진단을 대신하지 않습니다.</p>
+  </div>`;
+  $('retryBtn').addEventListener('click', restart);
+  $('copyBtn').addEventListener('click', () => {
+    const txt = `나의 64유형 성격 코드: ${code} (${v.adj} ${t.n})\n` + Object.keys(AXES).map(a => `${AXES[a].t} ${pct[a]>=50?AXES[a].l[0]+' '+pct[a]:AXES[a].l[1]+' '+(100-pct[a])}%`).join(' · ');
+    const done = () => { $('copyBtn').textContent = '복사됨'; setTimeout(() => $('copyBtn').textContent = '결과 복사하기', 1600); };
+    const fallback = () => { const ta = $('copyText'); ta.hidden = false; ta.value = txt; ta.select(); };
+    try{ navigator.clipboard.writeText(txt).then(done, fallback); }catch(e){ fallback(); }
+  });
+  show('result');
+}
+
+function start(fresh){
+  if (fresh){ answers = new Array(QUESTIONS.length).fill(null); clearSaved(); cur = 0; }
+  else { const f = answers.indexOf(null); cur = f === -1 ? 0 : f; }
+  renderQ(); show('quiz');
+}
+function restart(){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} start(true); }
+
+// 링크의 #r-CODE-p1.p2... 로 결과 바로 열기
+function fromHash(){
+  const m = /^#r-[A-Z]{4}-[AT]-[CD]-(\d{1,3}(?:\.\d{1,3}){5})$/.exec(location.hash);
+  if (!m) return false;
+  const nums = m[1].split('.').map(Number);
+  if (nums.some(n => n < 0 || n > 100)) return false;
+  const pct = {}; Object.keys(AXES).forEach((a,i) => pct[a] = nums[i]);
+  renderResult(pct); return true;
+}
+
+buildDots();
+$('startBtn').addEventListener('click', () => start(true));
+$('resumeBtn').addEventListener('click', () => start(false));
+$('nextBtn').addEventListener('click', next);
+$('prevBtn').addEventListener('click', prev);
+document.addEventListener('keydown', e => {
+  if ($('quiz').hidden) return;
+  if (e.key >= '1' && e.key <= '7') answer(VALUES[+e.key-1]);
+  else if (e.key === 'ArrowLeft') prev();
+  else if (e.key === 'ArrowRight') next();
+});
+const saved = load();
+if (saved && saved.some(x => x !== null)){
+  answers = saved;
+  const n = saved.filter(x => x !== null).length;
+  $('resumeBtn').hidden = false;
+  $('resumeBtn').textContent = `이어서 하기 (${n}/${QUESTIONS.length})`;
+}
+fromHash();
+</script>
+</body>
+</html>
