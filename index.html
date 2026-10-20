@@ -99,6 +99,36 @@ ul{margin:0;padding-left:1.1em;display:grid;gap:4px}
 .grid16 div b{display:block;font-family:var(--font-mono);font-size:.95rem}
 .grid16 div.me{background:var(--tc);color:var(--on-accent);border-color:var(--tc)}
 .note{font-size:.85rem;color:var(--muted)}
+/* 유형 직접 고르기 */
+.pick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 14px}
+@media (max-width:520px){.pick{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pick fieldset{border:0;margin:0;padding:0;display:grid;gap:4px;min-width:0}
+.pick legend{font-size:.8rem;color:var(--muted);padding:0;margin-bottom:4px}
+.seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;background:transparent;color:var(--fg);padding:10px 4px;font-family:var(--font-mono);font-weight:600;font-size:1.05rem;line-height:1.2}
+.seg button small{display:block;font-family:var(--font-body);font-weight:500;font-size:.72rem;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.seg button[aria-pressed="true"] small{color:var(--on-accent)}
+.seg button:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+.pickcode{font-family:var(--font-mono);font-weight:600;font-size:1.4rem}
+/* 투자 성향 */
+.risk{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+.risk div{border-radius:8px;padding:8px 2px;text-align:center;font-size:.72rem;word-break:break-all;line-height:1.3;border:1px solid var(--line);color:var(--muted)}
+.risk div b{display:block;font-family:var(--font-mono);font-size:.95rem}
+.risk div.on{background:var(--tc);border-color:var(--tc);color:var(--on-accent)}
+.mix{display:flex;gap:2px;height:14px}
+.mix i{display:block;height:100%}
+.mix i:first-child{border-radius:4px 0 0 4px} .mix i:last-child{border-radius:0 4px 4px 0}
+.mix .m1{background:var(--tc)} .mix .m2{background:var(--muted)} .mix .m3{background:var(--line)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.85rem}
+.legend span{display:inline-flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.legend .m1{background:var(--tc)} .legend .m2{background:var(--muted)} .legend .m3{background:var(--line);border:1px solid var(--muted)}
+.grid16 button{font:inherit;color:inherit;background:transparent;border:1px solid var(--line);border-radius:8px;padding:8px 6px;text-align:center;font-size:.78rem;line-height:1.3}
+.grid16 button b{display:block;font-family:var(--font-mono);font-size:.95rem}
+.grid16 button.me{background:var(--tc);color:var(--on-accent);border-color:var(--tc)}
+.grid16 button:hover{border-color:var(--tc)}
+.grid16 button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -127,6 +157,16 @@ ul{margin:0;padding-left:1.1em;display:grid;gap:4px}
         <button class="btn ghost" id="resumeBtn" type="button" hidden>이어서 하기</button>
       </div>
       <p class="note">정답은 없습니다. 되고 싶은 모습보다 평소의 나를 떠올리며 답해 주세요. 확신이 없으면 가운데를 고르세요.</p>
+    </div>
+    <div class="card" id="picker">
+      <span class="eyebrow">검사 없이 바로 보기</span>
+      <h2>내 유형 골라 보기</h2>
+      <p class="muted">이미 알고 있는 유형이 있다면 글자를 골라 성격 설명과 투자 스타일을 바로 확인하세요.</p>
+      <div class="pick" id="pickBox"></div>
+      <div class="row">
+        <span class="pickcode" id="pickCode">ENFP-T-H</span>
+        <button class="btn" id="pickBtn" type="button">이 유형 보기</button>
+      </div>
     </div>
   </section>
 
@@ -215,6 +255,49 @@ const VARIANTS = {
   TB:{adj:'치열한',tip:'민감한 감각과 강한 야망을 함께 지녀 높은 목표를 향해 몰입합니다. 인정받고 싶은 마음이 지칠 만큼 커지지 않도록 쉬어 가세요.'}
 };
 
+// 투자 스타일: 기본 16유형별 성향 + 정서성(A/T)·정직-겸손(H/B) 보정
+const INVEST = {
+  INTJ:{n:'시스템 설계형 투자자',d:'자신만의 원칙과 데이터로 장기 포트폴리오를 설계하고 꾸준히 지킵니다.',f:['원칙에 따라 정기적으로 리밸런싱하는 자산배분','기업 분석에 기반한 장기 가치투자','규칙이 명확한 퀀트·팩터 전략'],x:['내 분석을 과신해 반대 신호를 무시하기','확신 종목에 지나치게 몰아 담기']},
+  INTP:{n:'리서치형 투자자',d:'원리를 이해해야 움직입니다. 산업과 기술을 깊이 공부한 뒤 투자합니다.',f:['인덱스를 중심에 두고 관심 종목을 조금 더하는 코어-위성 전략','기술·산업 리서치 기반 성장주','과거 데이터로 전략을 검증하는 백테스트'],x:['분석만 하다 실행을 미루기','이해하기 어려운 복잡한 상품에 끌리기']},
+  ENTJ:{n:'목표 달성형 전략가',d:'수익 목표를 분명히 정하고 계획대로 밀어붙입니다.',f:['목표 수익률과 기한을 정한 성장 포트폴리오','직접 운영하는 사업·부동산 등 실물 자산','분기마다 성과를 점검하는 루틴'],x:['손실을 늦게 인정하기','빚을 내 과하게 투자하기(레버리지)']},
+  ENTP:{n:'트렌드 탐색형 투자자',d:'새로운 테마를 누구보다 빨리 발견하고 실험하는 것을 즐깁니다.',f:['혁신 테마 ETF','코어-위성 전략에서 위성 비중으로만 실험하기','새 아이디어는 소액으로 먼저 시험하기'],x:['잦은 매매로 수수료와 세금 늘리기','유행을 쫓아 고점에 사기']},
+  INFJ:{n:'가치 중심 장기투자자',d:'내 신념과 맞는 기업에 오래 투자하며 의미를 찾습니다.',f:['ESG·임팩트 펀드','매달 같은 금액을 넣는 장기 적립식 투자','소수 기업을 깊이 연구한 장기 보유'],x:['애정이 생긴 종목을 정리하지 못하기','걱정 때문에 현금을 지나치게 많이 쥐고 있기']},
+  INFP:{n:'의미 추구형 투자자',d:'수익률보다 돈이 내 삶에 주는 의미를 중요하게 여깁니다.',f:['자동이체로 쌓는 인덱스 적립식','가치관에 맞는 ESG ETF','꿈과 목표별로 나눈 저축 계좌'],x:['투자 관리를 계속 미루기','기분에 따라 사고팔기']},
+  ENFJ:{n:'공동 목표형 투자자',d:'가족과 주변 사람의 미래까지 함께 그리며 자산을 계획합니다.',f:['교육·노후 등 가족 목표에 맞춘 자산 계획','꾸준한 현금 흐름을 주는 배당주','전문가 상담을 적극 활용하기'],x:['지인 추천만 믿고 투자하기','남의 의견에 쉽게 흔들리기']},
+  ENFP:{n:'아이디어 탐험형 투자자',d:'흥미로운 아이디어에 끌리지만 꾸준함은 시스템으로 보완해야 합니다.',f:['자동 적립식에 소액 테마 투자를 더하기','혁신 성장 ETF','매수·매도 규칙을 미리 적어 두기'],x:['충동적으로 매수하기','관심이 식으면 계좌를 방치하기']},
+  ISTJ:{n:'원칙 수호형 투자자',d:'검증된 방법으로 원금을 지키며 차곡차곡 불립니다.',f:['예금·채권 비중을 갖춘 안정적 자산배분','배당 우량주','날짜를 정해 하는 정기 리밸런싱'],x:['지나치게 보수적이라 물가 상승에 뒤처지기','시장 변화에 늦게 대응하기']},
+  ISFJ:{n:'안전 우선형 투자자',d:'가족과 나의 안전망을 먼저 챙기고, 그다음에 투자합니다.',f:['비상금부터 6개월 치 마련하기','예금·채권과 인덱스를 섞은 포트폴리오','연금저축·IRP 등 세제 혜택 계좌'],x:['위험을 피하느라 좋은 기회를 놓치기','남을 위한 지출로 투자 여력이 줄기']},
+  ESTJ:{n:'관리형 실행가',d:'규칙을 세우고 기록하며 계획대로 실행합니다.',f:['규칙에 따른 분할매수','배당주·가치주','가계부와 투자 성과 기록'],x:['기존 방식만 고집하기','손실 종목에 계속 돈을 더 넣기(물타기)']},
+  ESFJ:{n:'안정 공동체형 투자자',d:'믿을 만한 정보와 사람을 통해 안정적으로 투자합니다.',f:['목적별 통장 쪼개기','배당 ETF','신뢰할 수 있는 전문가와 상의하기'],x:['주변 분위기에 휩쓸려 매수하기','거절하지 못하고 상품에 가입하기']},
+  ISTP:{n:'실전 분석형 투자자',d:'차분하게 데이터를 보고 필요할 때 빠르게 움직입니다.',f:['차트 지표를 활용한 중기 매매','원자재·실물 자산','손절 기준을 정해 두고 지키기'],x:['단기 매매에 지나치게 몰입하기','장기 계획 없이 투자하기']},
+  ISFP:{n:'감각적 실속형 투자자',d:'복잡한 것보다 단순하고 내 생활과 가까운 투자를 좋아합니다.',f:['자동이체 인덱스 적립식','내가 즐겨 쓰는 브랜드 기업 장기 보유','2~3개 상품으로 단순하게 구성'],x:['하락장에 계좌를 아예 외면하기','충동 소비로 투자금이 줄기']},
+  ESTP:{n:'기회 포착형 트레이더',d:'빠른 판단으로 기회를 잡지만 위험 관리가 성패를 가릅니다.',f:['손절 규칙을 정한 소액 단기 매매','추세를 따르는 모멘텀 전략','핵심 자산은 인덱스로 따로 떼어 두기'],x:['과도한 레버리지','도박처럼 크게 베팅하기']},
+  ESFP:{n:'현재 중시형 투자자',d:'지금을 즐기는 만큼, 저축과 투자는 자동으로 돌아가게 만드는 것이 핵심입니다.',f:['월급날 자동이체 적립','내가 소비하는 분야의 기업 투자','2~3개 ETF로 단순하게'],x:['유행 종목을 뒤쫓기','저축보다 소비를 먼저 하기']}
+};
+const INV_E = {
+  A:'자기확신형(A): 시장이 흔들려도 비교적 침착해 손실을 견디는 힘이 큽니다. 다만 자신감이 과신으로 바뀌지 않도록 근거를 기록해 두세요.',
+  T:'신중형(T): 손실에 민감해 하락장에서 급히 팔고 싶어질 수 있습니다. 자동 적립과 미리 정한 규칙이 감정을 대신 지켜 줍니다.'
+};
+const INV_H = {
+  H:'겸손형(H): 과시보다 실속을 챙겨 장기·분산 투자와 잘 맞습니다. 신뢰할 수 있는 기업과 상품을 고르는 눈이 강점입니다.',
+  B:'대담형(B): 높은 수익과 성공에 대한 동기가 강합니다. 남보다 앞서려는 마음에 위험한 상품이나 잦은 매매로 기울지 않게 주의하세요.'
+};
+// 한국 금융투자협회식 투자성향 5단계와 참고용 자산배분 예시(주식형/채권·예금/현금)
+const LEVELS = [
+  {n:'안정형',mix:[10,70,20]},{n:'안정추구형',mix:[30,55,15]},{n:'위험중립형',mix:[50,40,10]},
+  {n:'적극투자형',mix:[70,25,5]},{n:'공격투자형',mix:[85,10,5]}
+];
+// 연구에서 정서성(신경성)이 높을수록 위험 회피, 외향성·개방성이 높을수록 위험 감수 경향이 보고됨
+function riskLevel(pct){
+  const r = 0.4*(100-pct.E) + 0.2*pct.X + 0.2*pct.O + 0.2*(100-pct.H);
+  return r < 35 ? 0 : r < 45 ? 1 : r < 55 ? 2 : r < 65 ? 3 : 4;
+}
+// 검사 없이 고른 코드는 각 요인을 높음 75 / 낮음 25로 대신한다
+function pctFromCode(code){
+  const hi = b => b ? 75 : 25;
+  return {X:hi(code[0]==='E'),O:hi(code[1]==='N'),A:hi(code[2]==='F'),C:hi(code[3]==='J'),E:hi(code[5]==='T'),H:hi(code[7]==='H')};
+}
+
 const ORDER = ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP','ISTJ','ISFJ','ESTJ','ESFJ','ISTP','ISFP','ESTP','ESFP'];
 const groupOf = t => t[1]==='N' ? (t[2]==='T'?'NT':'NF') : (t[3]==='J'?'SJ':'SP');
 const STORE = 'hexaco64.answers';
@@ -291,7 +374,7 @@ function finish(){
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 const level = p => p >= 75 ? '매우 높음' : p >= 60 ? '높음' : p > 40 ? '보통' : p > 25 ? '낮음' : '매우 낮음';
 
-function renderResult(pct){
+function renderResult(pct, picked){
   const code = codeOf(pct);
   const base = code.slice(0,4), id = code[5], h = code[7];
   const t = TYPES[base], g = GROUPS[groupOf(base)], v = VARIANTS[id+h];
@@ -306,21 +389,26 @@ function renderResult(pct){
       <p class="note">${hi ? f.hd : f.ld}</p></div>`;
   }).join('');
   const borderline = KEYS.filter(a => Math.abs(pct[a]-50) < 10).map(a => FACTORS[a].n);
-  const grid = ORDER.map(k => `<div class="${k===base?'me':''}"><b>${k}</b>${TYPES[k].n}</div>`).join('');
+  const grid = ORDER.map(k => `<button type="button" data-type="${k}" class="${k===base?'me':''}" aria-pressed="${k===base}"><b>${k}</b>${TYPES[k].n}</button>`).join('');
+  const inv = INVEST[base], lv = riskLevel(pct), mix = LEVELS[lv].mix, mixN = ['주식형','채권·예금','현금·기타'];
   el.innerHTML = `
   <div class="card hero">
-    <span class="eyebrow">당신의 성격 코드</span>
+    <span class="eyebrow">${picked ? '선택한 성격 코드' : '당신의 성격 코드'}</span>
     <div class="code">${code}</div>
     <h2>${v.adj} ${t.n}</h2>
     <div class="row"><span class="chip">${g.n} 기질</span><span class="chip">${FACTORS.E[id==='T'?'hn':'ln']}</span><span class="chip">${FACTORS.H[h==='H'?'hn':'ln']}</span></div>
     <p>${t.d} ${v.tip}</p>
   </div>
-  <div class="card">
+  ${picked ? `<div class="card">
+    <h3>요인 점수는 검사 후에 볼 수 있어요</h3>
+    <p class="note">고른 글자만으로 보여 드리는 설명입니다. 60문항 검사를 하면 6가지 요인 점수와 경계선 여부까지 확인할 수 있어요.</p>
+    <div class="row"><button class="btn" id="takeBtn" type="button">검사 시작하기</button></div>
+  </div>` : `<div class="card">
     <h3>HEXACO 6요인 프로필</h3>
     <p class="note">0~100점, 50점 이상이면 높은 쪽 글자가 코드에 들어갑니다.</p>
     <div class="bars">${bars}</div>
     ${borderline.length ? `<p class="note">경계선 요인(${borderline.join(', ')})은 양쪽 성향이 비슷합니다. 유형 글자보다 점수 자체를 참고하세요.</p>` : ''}
-  </div>
+  </div>`}
   <div class="card">
     <div class="cols">
       <div><h3>강점</h3><ul>${t.s.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
@@ -333,10 +421,26 @@ function renderResult(pct){
       <div><h3>잘 맞는 유형</h3><div class="matches">${t.m.map(m=>`<span class="chip">${m} ${TYPES[m].n}</span>`).join('')}</div></div>
     </div>
   </div>
+  <div class="card" id="investCard">
+    <span class="eyebrow">투자 스타일</span>
+    <h3>${inv.n}</h3>
+    <p>${inv.d}</p>
+    <div class="risk" role="img" aria-label="투자성향 ${lv+1}단계 ${LEVELS[lv].n}">${LEVELS.map((l,i) => `<div class="${i===lv?'on':''}"><b>${i+1}</b>${l.n}</div>`).join('')}</div>
+    <p class="note">성격으로 본 투자성향은 <b>${lv+1}단계 ${LEVELS[lv].n}</b>입니다. 아래는 이 단계의 참고용 자산배분 예시예요.</p>
+    <div class="mix">${mix.map((m,i) => `<i class="m${i+1}" style="width:${m}%" title="${mixN[i]} ${m}%"></i>`).join('')}</div>
+    <div class="legend">${mix.map((m,i) => `<span><i class="m${i+1}"></i>${mixN[i]} ${m}%</span>`).join('')}</div>
+    <div class="cols">
+      <div><h3>잘 맞는 전략</h3><ul>${inv.f.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+      <div><h3>조심할 습관</h3><ul>${inv.x.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+    </div>
+    <p>${INV_E[id]}</p>
+    <p>${INV_H[h]}</p>
+    <p class="note">성격과 투자 성향의 일반적인 경향을 바탕으로 한 참고 정보이며 투자 권유가 아닙니다. 실제 투자는 나이, 소득, 목표 기간, 재무 상황을 함께 고려해 결정하세요.</p>
+  </div>
   <div class="card">
     <h3>16가지 기본 유형</h3>
     <div class="grid16">${grid}</div>
-    <p class="note">각 기본 유형은 정서성(A/T)과 정직-겸손(H/B) 조합(든든한·거침없는·섬세한·치열한)에 따라 4가지로 나뉘어 모두 64가지가 됩니다.</p>
+    <p class="note">각 기본 유형은 정서성(A/T)과 정직-겸손(H/B) 조합(든든한·거침없는·섬세한·치열한)에 따라 4가지로 나뉘어 모두 64가지가 됩니다. 유형을 누르면 그 유형의 설명을 볼 수 있어요.</p>
   </div>
   <div class="card">
     <h3>왜 HEXACO인가요?</h3>
@@ -345,14 +449,18 @@ function renderResult(pct){
   <div class="card">
     <div class="row">
       <button class="btn" id="copyBtn" type="button">결과 복사하기</button>
-      <button class="btn ghost" id="retryBtn" type="button">다시 검사하기</button>
+      <button class="btn ghost" id="retryBtn" type="button">${picked ? '검사하기' : '다시 검사하기'}</button>
+      <button class="btn ghost" id="otherBtn" type="button">다른 유형 고르기</button>
     </div>
     <textarea id="copyText" readonly hidden rows="3" style="width:100%;font:inherit"></textarea>
     <p class="note">이 검사는 자기 이해를 돕는 참고용이며, 전문 심리 검사나 진단을 대신하지 않습니다.</p>
   </div>`;
   $('retryBtn').addEventListener('click', restart);
+  if (picked) $('takeBtn').addEventListener('click', restart);
+  $('otherBtn').addEventListener('click', () => { setPick(code); show('intro'); $('picker').scrollIntoView(); });
+  el.querySelectorAll('.grid16 button').forEach(b => b.addEventListener('click', () => showPicked(b.dataset.type+code.slice(4))));
   $('copyBtn').addEventListener('click', () => {
-    const txt = `나의 64유형 성격 코드: ${code} (${v.adj} ${t.n})\nHEXACO ` + KEYS.map(a => `${FACTORS[a].n} ${pct[a]}`).join(' · ');
+    const txt = `64유형 성격 코드: ${code} (${v.adj} ${t.n})\n투자 스타일: ${inv.n} · ${LEVELS[lv].n}` + (picked ? '' : '\nHEXACO ' + KEYS.map(a => `${FACTORS[a].n} ${pct[a]}`).join(' · '));
     const done = () => { $('copyBtn').textContent = '복사됨'; setTimeout(() => $('copyBtn').textContent = '결과 복사하기', 1600); };
     const fallback = () => { const ta = $('copyText'); ta.hidden = false; ta.value = txt; ta.select(); };
     try{ navigator.clipboard.writeText(txt).then(done, fallback); }catch(e){ fallback(); }
@@ -367,8 +475,34 @@ function start(fresh){
 }
 function restart(){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} start(true); }
 
-// 링크의 #r-CODE-H.E.X.A.C.O 점수로 결과 바로 열기
+// 유형 직접 고르기: [코드 위치, 앞 글자, 뒤 글자, 이름]
+const PICK = [[0,'E','I','외향','내향','에너지'],[1,'N','S','직관','감각','인식'],[2,'F','T','관대','원칙','판단'],[3,'J','P','계획','유연','생활'],[5,'A','T','자기확신','신중','정서'],[7,'H','B','겸손','대담','태도']];
+let pickCode = 'ENFP-T-H';
+function buildPicker(){
+  $('pickBox').innerHTML = PICK.map(([pos,a,b,an,bn,lg]) => `<fieldset><legend>${lg}</legend><div class="seg">
+    <button type="button" id="pk${pos}${a}" data-pos="${pos}" data-v="${a}">${a}<small>${an}</small></button>
+    <button type="button" id="pk${pos}${b}" data-pos="${pos}" data-v="${b}">${b}<small>${bn}</small></button></div></fieldset>`).join('');
+  $('pickBox').querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => {
+    const pos = +btn.dataset.pos;
+    setPick(pickCode.slice(0,pos) + btn.dataset.v + pickCode.slice(pos+1));
+  }));
+  setPick(pickCode);
+}
+function setPick(code){
+  pickCode = code;
+  $('pickCode').textContent = code;
+  $('pickBox').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', code[+b.dataset.pos] === b.dataset.v));
+}
+function showPicked(code){
+  setPick(code);
+  try{ history.replaceState(null,'','#t-'+code); }catch(e){}
+  renderResult(pctFromCode(code), true);
+}
+
+// 링크의 #r-CODE-H.E.X.A.C.O(검사 결과) 또는 #t-CODE(고른 유형)로 결과 바로 열기
 function fromHash(){
+  const t = /^#t-([EI][NS][FT][JP]-[AT]-[HB])$/.exec(location.hash);
+  if (t){ showPicked(t[1]); return true; }
   const m = /^#r-[EI][NS][FT][JP]-[AT]-[HB]-(\d{1,3}(?:\.\d{1,3}){5})$/.exec(location.hash);
   if (!m) return false;
   const nums = m[1].split('.').map(Number);
@@ -378,6 +512,8 @@ function fromHash(){
 }
 
 buildDots();
+buildPicker();
+$('pickBtn').addEventListener('click', () => showPicked(pickCode));
 $('startBtn').addEventListener('click', () => start(true));
 $('resumeBtn').addEventListener('click', () => start(false));
 $('nextBtn').addEventListener('click', next);
